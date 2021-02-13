@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Map>
+  <Room RoomNumber="0" description="this is the room 0">
+    <Enemy></Enemy>
+    <N>1</N>
+    <E>-1</E>
+    <W>-1</W>
+    <S>-1</S>
+  </Room>
+  <Room RoomNumber="1" description="this is the room 1">
+    <Enemy></Enemy>
+    <Object></Object>
+    <N>4</N>
+    <E>2</E>
+    <W>3</W>
+    <S>0</S>
+  </Room>
+  <Room RoomNumber="2" description="this is the room 2">
+    <Enemy></Enemy>
+    <Object></Object>
+    <N>-1</N>
+    <E>-1</E>
+    <W>1</W>
+    <S>-1</S>
+  </Room>
+  <Room RoomNumber="3" description="this is the room 3">
+    <Object></Object>
+    <N>-1</N>
+    <E>1</E>
+    <W>-1</W>
+    <S>-1</S>
+  </Room>
+  <Room RoomNumber="4" description="this is the room 4">
+    <Enemy></Enemy>
+    <N>-1</N>
+    <E>-1</E>
+    <W>-1</W>
+    <S>1</S>
+    <FinalTresure></FinalTresure>
+  </Room>
+</Map>
