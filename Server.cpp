@@ -1,11 +1,13 @@
-#pragma once
-
 #include"SFML/Network.hpp"
-#include <jdbc/mysql_connection.h>
-#include <jdbc/mysql_driver.h>
-#include <jdbc/cppconn/resultset.h>
-#include <jdbc/cppconn/statement.h>
-#include <jdbc/cppconn/prepared_statement.h>
+/*
+#include "mysql_connection.h"
+#include <cppconn/driver.h>
+#include <cppconn/connection.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+*/
 #include <iostream>
 #include<sstream>
 #include<string>
@@ -17,12 +19,6 @@
 #include "rapidxml.hpp"
 #include <thread>
 #include <memory>
-
-const int MAX_VIDA = 10;
-const int PX_VENTANA = 600;
-const float LADO_BALDOSA = 30.f;
-const int BALDOSA_POR_LADO = PX_VENTANA / LADO_BALDOSA;
-const int NUM_TRENES = 3;
 
 enum class Commands {
 	ASK_USERNAME, USERNAME, ASK_PASSWORD, PASSWORD, INVALID_PASSWORD, ASK_RACE, RACE, ASK_CHARACTER_NAME, CHARACTER_NAME, ASK_MAP,
@@ -77,14 +73,6 @@ struct Room
 	enemy enemy_;
 };
 
-void printMap(std::vector<Room> rooms)
-{
-	for (int i = 0; i < rooms.size(); i++)
-	{
-		std::cout << std::endl;
-		std::cout << rooms[i].roomNumber << " " << rooms[i].NorthConnection << " " << rooms[i].EastConnection << " " << rooms[i].SouthConnection << " " << rooms[i].WestConnection;
-	}
-}
 //carga el mapa en un vector que contiene habitaciones
 std::vector<Room> LoadMapIntoVector(std::string mapName)
 {
@@ -138,7 +126,6 @@ std::vector<Room> LoadMapIntoVector(std::string mapName)
 
 		RoomsVector.push_back(auxRoom);
 	}
-	printMap(RoomsVector);
 	return RoomsVector;
 }
 std::vector<sf::TcpSocket*> sockets;
@@ -163,7 +150,7 @@ void Connect(sf::TcpSocket* socket)
 		packet.clear();
 		if (socket->receive(packet) != sf::Socket::Done)
 		{
-			std::cout << "El cliente se ha desconectado" << std::endl;
+			std::cout << "The client has disconnected" << std::endl;
 			connected = false;
 		}
 		else
@@ -276,7 +263,7 @@ void Connect(sf::TcpSocket* socket)
 					MapRooms = LoadMapIntoVector("Map1.xml");
 				}
 				packet.clear();
-				packet << static_cast<int32_t>(Commands::PLAY);
+				packet << static_cast<int32_t>(Commands::PLAY)<< true;
 				socket->send(packet);
 				break;
 			}
@@ -313,7 +300,7 @@ void Connect(sf::TcpSocket* socket)
 				{
 					//Moverse en la dirección indicada (Ir a la sala en esa dirección)
 					packet.clear();
-					packet << static_cast<int32_t>(Commands::GO_TO) << true;
+					packet << static_cast<int32_t>(Commands::GO_TO) << true << currentRoom << MapRooms[currentRoom].description;
 					socket->send(packet);
 				}
 				//Si no se puede
@@ -330,8 +317,12 @@ void Connect(sf::TcpSocket* socket)
 			{
 				//Mirar si existe un objeto en la sala(Solo puede haber uno por sala)
 				//Si lo hay
-
-				if (MapRooms[currentRoom].hasObject)
+				if (MapRooms[currentRoom].hasFinalTresure)
+				{
+					packet.clear();
+					packet << static_cast<int32_t>(Commands::WIN);
+				}
+				else if (MapRooms[currentRoom].hasObject)
 				{
 					
 					
@@ -346,12 +337,7 @@ void Connect(sf::TcpSocket* socket)
 					packet.clear();
 					packet << static_cast<int32_t>(Commands::PICK_UP) << true;
 					packet << MapRooms[currentRoom].objectToPickup.name;
-				}
-				else if (MapRooms[currentRoom].hasFinalTresure)
-				{
-					packet.clear();
-					packet << static_cast<int32_t>(Commands::WIN);
-				}
+				}				
 				else
 				{
 					packet.clear();
@@ -368,7 +354,7 @@ void Connect(sf::TcpSocket* socket)
 				packet.clear();
 				packet << static_cast<int32_t>(Commands::STATE);
 
-				packet << player.character.HP << player.character.inventario.size(); //Sustituir 100 por vida de jugador y 2 por número de objetos en inventario
+				packet << player.character.HP<< (int) player.character.inventario.size(); //Sustituir 100 por vida de jugador y 2 por número de objetos en inventario
 				for (int i = 0; i < player.character.inventario.size(); i++)//Sustituir 2 por número de objetos en inventario
 				{
 					packet << i + 1 << player.character.inventario[i].name; //Sustiruir key por nombre del objeto pertinente
@@ -391,8 +377,11 @@ void Connect(sf::TcpSocket* socket)
 						MapRooms[currentRoom].enemy_.HP = 0;
 						MapRooms[currentRoom].hasEnemy = false;
 					}
+					
+					player.character.HP -= MapRooms[currentRoom].enemy_.atack;
+					if (player.character.HP <= 0)
 					{
-						player.character.HP -= MapRooms[currentRoom].enemy_.atack;
+						player.character.HP = 0;
 					}
 					packet.clear();
 					packet << static_cast<int32_t>(Commands::ATTACK) << true;
@@ -420,10 +409,14 @@ void Connect(sf::TcpSocket* socket)
 				//Pasar descripción de la sala
 				packet << currentRoom;
 				packet << MapRooms[currentRoom].NorthConnection << MapRooms[currentRoom].EastConnection << MapRooms[currentRoom].SouthConnection << MapRooms[currentRoom].WestConnection; //Sustituir el primer true por la posibilidad de ir a Norte desde la sala actual y asi con los otros(orden: North, East, South, West)
-				packet << MapRooms[currentRoom].hasObject;
+				packet << (MapRooms[currentRoom].hasObject || MapRooms[currentRoom].hasFinalTresure);
 				if (MapRooms[currentRoom].hasObject)
 				{
 					packet << MapRooms[currentRoom].objectToPickup.name; //Sustituir true en base a si hay objeto o no, y sustituir key por el nombre del objeto si lo hay (Si no lo hay, solo enviar el false)
+				}
+				else if(MapRooms[currentRoom].hasFinalTresure)
+				{
+					packet << "final treasure";
 				}
 				packet << MapRooms[currentRoom].hasEnemy;
 				if (MapRooms[currentRoom].hasEnemy)
@@ -437,14 +430,14 @@ void Connect(sf::TcpSocket* socket)
 			case Commands::AKNOWLEDGE_INFO:
 			{
 				packet.clear();
-				packet << static_cast<int32_t>(Commands::PLAY);
+				packet << static_cast<int32_t>(Commands::PLAY)<< false;
 				socket->send(packet);
 				break;
 			}
 			case Commands::DISCONNECT:
 			{
 				connected = false;
-				std::cout << "El cliente se ha desconectado \n";
+				std::cout << "The client has disconnected \n";
 				break;
 			}
 			default:
@@ -465,7 +458,7 @@ int main()
 	sf::Socket::Status status = listener.listen(52000);
 	if (status != sf::Socket::Done)
 	{
-		std::cout << "error en la creacion del listener" << std::endl;
+		std::cout << "Error in the creation of the listener" << std::endl;
 		return 0;
 	}
 
@@ -475,12 +468,12 @@ int main()
 		sf::TcpSocket* newSocket = new sf::TcpSocket;
 		if (listener.accept(*newSocket) != sf::Socket::Done)
 		{
-			std::cout << "error en la conexion" << std::endl;
+			std::cout << "Connection error" << std::endl;
 			newSocket->disconnect();
 		}
 		else
 		{
-			std::cout << "Conectado" << std::endl;
+			std::cout << "Connected" << std::endl;
 			sockets.push_back(newSocket);
 			std::thread connectionThread(&Connect, newSocket);
 			connectionThread.detach();
@@ -488,6 +481,6 @@ int main()
 	}
 
 	listener.close();
-	std::cout << "ejecucion terminada";
+	std::cout << "Execution terminated";
 
 }
