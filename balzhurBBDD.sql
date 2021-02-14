@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 14-02-2021 a las 02:57:52
+-- Tiempo de generación: 14-02-2021 a las 12:43:47
 -- Versión del servidor: 8.0.19
 -- Versión de PHP: 7.4.5RC1
 
@@ -59,6 +59,13 @@ CREATE TABLE `inventarios` (
   `Power` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `inventarios`
+--
+
+INSERT INTO `inventarios` (`ID`, `Username_FK`, `ObjectType`, `ObjectName`, `Power`) VALUES
+(1, 'forzex', 1, 'Espada pequeña', 3);
+
 -- --------------------------------------------------------
 
 --
@@ -101,6 +108,13 @@ CREATE TABLE `personajes` (
   `Magica` int NOT NULL DEFAULT '3'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `personajes`
+--
+
+INSERT INTO `personajes` (`ID`, `Username_FK`, `Race`, `Name`, `Life`, `Attack`, `Defense`, `Magica`) VALUES
+(1, 'forzex', 2, 'guilo', 3, 2, 4, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -128,6 +142,13 @@ CREATE TABLE `users` (
   `NumEnemigosMatados` int NOT NULL DEFAULT '0',
   `NumMuertes` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `users`
+--
+
+INSERT INTO `users` (`ID`, `Username`, `Password`, `NumEnemigosMatados`, `NumMuertes`) VALUES
+(1, 'forzex', '12345', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -208,7 +229,7 @@ ALTER TABLE `enemigos`
 -- AUTO_INCREMENT de la tabla `inventarios`
 --
 ALTER TABLE `inventarios`
-  MODIFY `ID` int NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `objetos`
@@ -220,7 +241,7 @@ ALTER TABLE `objetos`
 -- AUTO_INCREMENT de la tabla `personajes`
 --
 ALTER TABLE `personajes`
-  MODIFY `ID` int NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usermaptimes`
@@ -232,7 +253,7 @@ ALTER TABLE `usermaptimes`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usersesiontimes`
